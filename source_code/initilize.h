@@ -5,7 +5,9 @@
 
 #include <SDL3_image/SDL_image.h>
 
-#define screenWidth  680 
+
+#define screenWidth  680
+
 #define screenHeight  500
 
 
