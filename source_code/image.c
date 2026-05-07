@@ -53,11 +53,11 @@ void destroyImageRepresentation(image_representation* image_file) {
 
         image_file->m_start.m_row = 0.0f;
 
-        image_file->m_start.m_row = 0.0f;
+	image_file->m_start.m_column = 0.0f;
 
         image_file->m_dimensions.m_row = 0.0f;
 
-        image_file->m_dimensions.m_row = 0.0f;
+        image_file->m_dimensions.m_column = 0.0f;
 
         image_file->m_angle = 0.0f;
 
