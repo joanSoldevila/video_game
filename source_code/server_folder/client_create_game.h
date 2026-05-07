@@ -5,6 +5,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 
+#define BUFFER_SIZE 1024
+
 void setupConnection(int* client_file_descriptor,struct sockaddr_in* server_address, int port);
+
 int send_data_to_server(char* buffer_r,char* buffer_s , int client_file_descriptor);
+
 void handleServerCommunication(int server_port);

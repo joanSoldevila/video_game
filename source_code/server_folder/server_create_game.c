@@ -18,7 +18,7 @@ void handle_client(int temporary_fd){
 
 	int result = 0;
 
-	printf("\nSERVER CONNECTED TO CLIENT WITH FD: %d\n", new_socket);
+	printf("\nSERVER CONNECTED TO CLIENT WITH FD: %d\n", temporary_fd);
 
 	if(temporary_fd<0){
 
@@ -29,9 +29,9 @@ void handle_client(int temporary_fd){
 	}
 
 
-	bytes_received = read(new_socket, buffer_receive, 1023);
+	bytes_received = read(temporary_fd, buffer_receive, 1023);
 
-	printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",new_socket, buffer_receive);
+	printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
 
 	result = buffer_receive[0] - '0';
 
@@ -71,14 +71,14 @@ void handle_client(int temporary_fd){
 //we also need a buffer that contains all of the active players names
 //
 
-		defualt:
+		default:
 			//in this case, when the server sends something wrong, what happens?
 			break;
 
 		}
-	send(new_socket,buffer_send, strlen(buffer_send),0);
+	send(temporary_fd,buffer_send, strlen(buffer_send),0);
 
-	close(new_socket);
+	close(temporary_fd);
 
 }
 

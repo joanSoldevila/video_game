@@ -25,7 +25,7 @@ void rendering(SDL_Renderer* renderer, image_representation* default_player){
 }
 
 
-//this functino is specific for render_with_rotation. It is used to be able to calculate the angle between the mouse and the image that represents the player in order to give direction to the image
+//Specific for render_with_rotation. Used to calculate the angle between the mouse and the image that represents the player
 
 float calculateAngleQuadrent(float mouseX, float mouseY, float row_user, float column_user){
 

@@ -69,6 +69,8 @@ void printMenuSC(){
 //depending on the option, the server will respond with different messages using different protocols
 void handleoption(int option, int file_descriptor){
 
+	char buffer_send[BUFFER_SIZE] = {0}
+
 	buffer_send[0] = option + '0';
 
 
@@ -181,9 +183,9 @@ void handleoption(int option, int file_descriptor){
 
 void handleServerCommunication(int server_port){
 
-	char buffer_send[1024]={0};
+	char buffer_send[BUFFER_SIZE]={0};
 
-	char buffer_receive[1024]={0};
+	char buffer_receive[BUFFER_SIZE]={0};
 
 	struct sockaddr_in server_address={0};
 
