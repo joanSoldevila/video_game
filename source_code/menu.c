@@ -1,5 +1,5 @@
 #include "menu.h"
-
+//function that presents options for user in main program loop
 void printMenu(){
 	printf("Options: \n");
 	printf("1. Connect/communicate to server\n");
@@ -9,8 +9,6 @@ void printMenu(){
 	printf("Enter a number please: \n");
 }
 
-/*menuCallFunction is called in main, this function is called when the game is loaded, so that the usser is able to see a menu. Keep in mind that in the future the menu will be done using sdl aswell, but for now we are going to base it in the terminal*/
-/*for now we are just going to assume that the user enterse a number each time, no error detection, later we are giong to do some error detection.*/
 int menuCallFunction(){
 	int result = 0;
 	printf("Welcome to th e main menu\n");
@@ -21,13 +19,11 @@ int menuCallFunction(){
 		scanf("%d",&result);
 
 		switch(result){
-//both 1,2 for now require us to leave this fuynction, so we are goint to have to indicate ti some how:
 		case 1:
 		case 2:
 			quit = true;
 			break;
 		case 3:
-//we are  going to implement this later
 			break;
 
 		case 4:

@@ -1,4 +1,6 @@
 #include "initilize.h"
+
+//initilizes and reserves space for renderer and window
 int init(SDL_Window** window, SDL_Renderer** renderer) {
 
     int exit_code = 0;
@@ -18,7 +20,7 @@ int init(SDL_Window** window, SDL_Renderer** renderer) {
     return exit_code;
 
 }
-
+//when loading images using string pahts we first call loadMedia which then calls loadFromFile, returning image_file with the image specified in the string path
 int loadMedia(image_representation* image_file, const char* image_path, SDL_Renderer* renderer, float startingX, float startingY) {
 
     int exit_code = 0;
@@ -73,6 +75,7 @@ int loadFromFile(const char* image_path, image_representation* image_file, SDL_R
 
 }
 
+//this functino is used to deallocate the memory used by window and renderer and set them to NULL. Only called when we try to quit the game
 void closeRendererWindow(SDL_Renderer** renderer, SDL_Window** window) {
 
     if (*(renderer) != NULL) {

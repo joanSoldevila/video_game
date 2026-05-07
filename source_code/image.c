@@ -1,5 +1,7 @@
 #include "image.h"
 
+//this function is used to fill rendering space with an image that we want to render to the screen.
+//we do this by defining a destintaion rectangle, filling it with our image, and calling SDL_RenderTexture 
 void render(SDL_Renderer* renderer, image_representation* image_file) {
 
     SDL_FRect destinationRect;
@@ -15,6 +17,7 @@ void render(SDL_Renderer* renderer, image_representation* image_file) {
     SDL_RenderTexture(renderer, image_file->m_texture, NULL, &destinationRect);
 
 }
+//same as void render(...) but you are able to rotate the image in this function
 void render_with_rotation(SDL_Renderer* renderer, image_representation* image_file){
 //keep in mind that in image_file, we have already updated the angle of the image, which is stored inside of image_file already.
         SDL_FRect destinationRect = {0};
@@ -39,6 +42,8 @@ void render_with_rotation(SDL_Renderer* renderer, image_representation* image_fi
         temporaryPoint.y = center_m_row - image_file->m_start.m_row;
         SDL_RenderTextureRotated(renderer, image_file->m_texture, NULL, &destinationRect, (double)image_file->m_angle, &temporaryPoint, SDL_FLIP_NONE);
 }
+
+//this function is used to deallocate/destroy an image. This is only called when we are quiting the game/exitting the program
 void destroyImageRepresentation(image_representation* image_file) {
 
     if (image_file != NULL) {

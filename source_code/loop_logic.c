@@ -1,5 +1,11 @@
 #include "loop_logic.h"
 
+
+//this function prepares the memory space that the SDL_Renderer is going to use to to render the image and other logic that we want.
+//we are specifing that we want white as the background color
+//we are then clearing what the renderer rendered before
+//we call render_with_rotatin to add to this memory space the image that we want to render
+
 void rendering(SDL_Renderer* renderer, image_representation* default_player){
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -10,16 +16,17 @@ void rendering(SDL_Renderer* renderer, image_representation* default_player){
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 
-        float center_m_row = default_player->m_dimensions.m_row/2 + default_player->m_start.m_row;
+//the following lines where just used to represent the center of the player, just for debugging and visualizing what was happening
+//        float center_m_row = default_player->m_dimensions.m_row/2 + default_player->m_start.m_row;
 
-        float center_m_column = default_player->m_dimensions.m_column/2 + default_player->m_start.m_column;
+  //      float center_m_column = default_player->m_dimensions.m_column/2 + default_player->m_start.m_column;
 
-        SDL_RenderPoint(renderer, center_m_column, center_m_row);
+    //    SDL_RenderPoint(renderer, center_m_column, center_m_row);
 
         SDL_RenderPresent(renderer);
 
 }
-
+//this functino is specific for render_with_rotation. It is used to be able to calculate the angle between the mouse and the image that represents the player in order to give direction to the image
 float calculateAngleQuadrent(float mouseX, float mouseY, float row_user, float column_user){
 
     float angle_final = 0.0f;
@@ -43,7 +50,7 @@ float calculateAngleQuadrent(float mouseX, float mouseY, float row_user, float c
     return angle_final;
 
 }
-
+//this function is called for handeling events: when the mouse moves, when the player is using the keyboard... depending on the input, we modify certain values
 bool eventHandler(SDL_Event* event,float* mouseX, float* mouseY, image_representation* default_player){
         bool quit = false;
         bool movement = false;
@@ -115,7 +122,7 @@ bool eventHandler(SDL_Event* event,float* mouseX, float* mouseY, image_represent
 
 }
 
-
+//this is the main game loop called in main.c
 void handleGameLoop(SDL_Renderer* renderer, image_representation* default_player){
 
 
