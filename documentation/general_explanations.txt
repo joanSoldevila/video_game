@@ -1,16 +1,3 @@
-								---- General Documentation of the video game ----
-                                                                -------------------------------------------------
-
- 
-										 --- Code division ----
-										 ----------------------
-
- 
- source_code/
-	- main.c
-	- initilize.c
-	- initilize.h
-	- server_folder/
-		-first_server.c
-
-
+Version 1:
+The first version is a compact/minimal version of the final product.
+It will be focused on single-player game mechanics, connecting to the server and being able to send compact information about the player while in a macht.
