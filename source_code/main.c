@@ -5,7 +5,7 @@
 
 #define n_images_animation 8 //8 is the total amount of images that are used for punching animation.
 
-#define server_port //this is the port that the server is going to be runing in my computer
+#define server_port 8080 //this is the port that the server is going to be runing in my computer
 
 int main(int argc, char* argv[]){
 
