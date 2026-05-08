@@ -20,22 +20,125 @@ void setupConnection(int* client_file_descriptor,struct sockaddr_in* server_addr
 
 }
 
+int calculate_amount_data(char* buffer){
 
+	int i;
+
+
+	for(i =0;(i<buffer[i]!='\0');i++);
+
+	return i;
+
+}
+void printString(char* buffer){
+
+	for(int i =0;(i<buffer[i]!='\0');i++){
+
+		printf("%c", buffer[i]);
+
+	}
+
+}
+
+int send_all(int temporary_fd, const char*  buffer, int length){
+
+        int total_length  = 0;
+
+        int bytes_left = length;
+
+        int n = 0;
+
+
+        //we finish until the total amount of bytes
+        while(total_length<length){
+
+                n = send(temporary_fd,buffer+total_length,bytes_left,0);
+
+                if(n == -1){
+
+                //if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
+                        break;
+
+                }
+
+                bytes_left-=n;
+
+                total_length+=n;
+
+        }
+
+
+        if(n == -1){
+
+                return bytes_left;
+
+        }
+
+        return total_length;
+
+}
+
+int read_all(int temporary_fd, char buffer[], int length){
+//rememebr that for reading it is always going to be one less, beacuse of the null terminator,
+
+	int total_length = 0;
+
+	int bytes_left = length;
+
+	int n = 0;
+
+
+	while(total_length<length){
+
+
+		n = read(temporary_fd, buffer+total_length,bytes_left);
+
+		if(n == -1){
+
+			printf("Error, the connection was lost, not bytes where sent\n");
+
+			break;
+		}
+
+
+		total_length+=n;
+
+		bytes_left-=n;
+
+	}
+
+
+	//after reading, we need to set the last thing that we have read to '\0', just in case:
+
+	buffer[total_length] = '\0';
+
+	return total_length;
+
+}
 int send_data_to_server(char* buffer_r,char* buffer_s , int client_file_descriptor){
 
 	int bytes_sent = 0;
 
 	int bytes_read = 0;
 
+	//we are going to have to check if the amount of data in buffer_s is equal to bytes_sent
 
-	bytes_sent = send(client_file_descriptor, buffer_s,strlen(buffer_s),0);
+	int bytes_sent_client = 0;
 
-	bytes_read =  read(client_file_descriptor,buffer_r, 1023);
+	bytes_sent_client = calculate_amount_data(buffer_s);
 
-	if(bytes_read>=0 && (bytes_read-1)){
+	bytes_sent = send_all(client_file_descriptor, buffer_s,BUFFER_SIZE);
 
-		buffer_r[bytes_read] = '\0';
+	if(bytes_sent != bytes_sent_client){
+
+		printf("Error, no estem enviant els mateixos bytes");
+
+		printf("bytes que hem comptat abans d'enviar: %d\n", bytes_sent_client);
+
+		printf("bytes que hem comptat despres d'enviar: %d\n", bytes_sent);
 	}
+
+	bytes_read =  read_all(client_file_descriptor,buffer_r, BUFFER_SIZE-1);
 
 	return bytes_read;
 
@@ -55,7 +158,7 @@ void printMenuSC(){
 
 	printf("4. Ask server for your incoming messages");
 
-	printf("5. Create/change your name\n");
+	printf("5. Create/change your name or send message to server\n");
 
 	printf("6. Create a game\n");
 
@@ -67,24 +170,47 @@ void printMenuSC(){
 
 //this function is called when the user enterd the server-menu option
 //depending on the option, the server will respond with different messages using different protocols
+/*
+
+in handle option we need to be carefull with the following things:
+
+bytes size for buffers.
+
+receving everthing that is being sent
+
+
+
+remember that in this case, latency is not a very big issue, this will become a problem when sending udp packates when a game is in session.
+
+we need a few buffers:
+
+buffer_send > this will contain what we want to send to the server
+
+buffer_receive > this will contain what the server has sent to use
+
+*/
+
 void handleoption(int option, int file_descriptor){
 
-	char buffer_send[BUFFER_SIZE] = {0}
+	char buffer_send[BUFFER_SIZE]="5hello this is the client";
+
+
+	char buffer_receive[BUFFER_SIZE] = {0};
+
+	int temporary_option = 0 ;
+
+	int counter = 0;
 
 	buffer_send[0] = option + '0';
 
+//	buffer_send[1] = '\0'; //we need to end it with a null terminator
 
-	bytes_receive = send_data_to_server(buffer_receive, buffer_send , client_file_descriptor);
+
+	int bytes_receive = send_data_to_server(buffer_receive, buffer_send , file_descriptor);
 
 	printf("Number of bytes received from server: %d\n", bytes_receive);
 
 	printf("Servers resposne: \n%s",buffer_receive);
-
-
-	int temorary_option = 0 ;
-
-	int counter = 0;
-
 
 	switch(option){
 
@@ -113,7 +239,7 @@ void handleoption(int option, int file_descriptor){
 
 			++counter;
 
-			int active_players = buffer_receive[counter++] - '0';
+			active_players = buffer_receive[counter++] - '0';
 
 			++counter;
 
@@ -152,6 +278,24 @@ void handleoption(int option, int file_descriptor){
 		case 5:
 
 			//this is something very specific and will later be implemented
+
+			//for now we are going to be using number 5 for sending simple messages to the server just to make sure taht everything is working in intercommunication
+			//we are also going to be stress testing it.
+			temporary_option = buffer_receive[counter++];
+
+//			++counter;
+
+			//now we are going to print the number that we have just received
+
+			printf("What the server sent us:\n");
+
+			for(int i = 0 ;buffer_receive[i]!='\0';i++){
+
+				printf("%c",buffer_receive[i]);
+
+			}
+			printf("\n");
+
 
 			break;
 		case 6:
@@ -232,7 +376,21 @@ void handleServerCommunication(int server_port){
 	}
 
 }
+/*
+lets go threw everything again:
+the user in the main loop in main.c decides that he or she wants to interact with the server.
+The user then  enters the value number 1 and handleServerCommunication is called with a port number which has been hardcoded into the client side code.
+The following explanation is in the scope of handleServerCommunication:
 
+we first setupConnection-> this function creates a socket using IPv4 IP address version aswell as the server port and connects.
+now we have the file descriptor of the scoket which is now conected to the server.
+After connecting to the server,we can now ask the user what he or shee wants to do.
+Keep in mind that we might need to change this, maybe the tcp connection that we have establihes closes before the user tries to enter something, meaning, maybe we should create the connection only when we really need it, not at the beginning of handleServerCommunication().
+but for now we are going to leave it like this.
+After setting up the tcp connection, we now we wait for user input. The options or now hardcoded into the server because this game is not going to be very complicated. If we wanted to make it more scalable we would probably not hardcode the options into the client side, but rather have the server show us the menu, and the client side sends back what the user wants to do.
+Our videogame is not going to overcomplicate things, so the options will just be harcoded, making a sharded protocol between server and client.
+After entering the option, we call handleoption
+*/
 
 int main(){
 

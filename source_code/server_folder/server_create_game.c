@@ -8,38 +8,154 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-void handle_client(int temporary_fd){
 
-	char buffer_receive[1024] = {0};
+#define BUFFER_SIZE 1024
 
-	char buffer_send[1024] = {0};
+void printCharChain(char* buffer){
 
-	int bytes_received = 0;
+	for(int i =0;buffer[i]!='\0';i++){
 
-	int result = 0;
+		printf("%c", buffer[i]);
 
-	printf("\nSERVER CONNECTED TO CLIENT WITH FD: %d\n", temporary_fd);
+	}
 
-	if(temporary_fd<0){
+	printf("\n");
 
-		printf("something went wrong, we were not able to create a socket or assigne file descriptor");
+}
 
-		exit(EXIT_FAILURE);
+
+
+int read_all(int temporary_fd, char buffer[], int length){
+
+	int total_length  = 0;
+
+	int bytes_left = length;
+
+	int n = 0;
+
+	//what we will do is wait untill al bytes have arrived, after that we will then interpret the message, this is easier.
+
+	//the maximum length for any message is 1024 bytes, this is inclduing the null opterator '\0'
+
+	while(total_length<length){
+
+		n = read(temporary_fd,buffer+total_length,bytes_left);
+
+		if(n == -1){
+
+			//if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
+
+			printf("Error,the tcp connection was lost\n");
+
+			break;
+
+		}
+
+		bytes_left-=n;
+
+		total_length+=n;
 
 	}
 
 
-	bytes_received = read(temporary_fd, buffer_receive, 1023);
+	if(n == -1){
+
+		return bytes_left;
+
+	}
+
+		//even though we have memset that sets eveyrhting to '\0', we will just do it for practice:
+
+	buffer[total_length] = '\0';
+
+
+	//so total length conts '\0'null operator
+
+	return total_length;
+
+}
+
+/*
+Errors: tcp is reliable, but reliable does not mean that the entire message will fit into a single packet.
+The operating system has a limited buffer which actually contains what the socket will actualy send, meaning we send the message to the OS kernel, the kernel only saves part of the message if there is not enought space in the temporary buffer, meaning the rest of the message is lost, it does not get sent.
+TCP is reliable but only for this OS kernel temporary buffer.
+*/
+
+int send_all(int temporary_fd, const char*  buffer, int length){
+
+	int total_length  = 0;
+
+	int bytes_left = length;
+
+	int n = 0;
+
+
+	//we finish until the total amount of bytes
+	while(total_length<length){
+
+		n = send(temporary_fd,buffer+total_length,bytes_left,0);
+
+		if(n == -1){
+
+		//if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
+			break;
+
+		}
+
+		bytes_left-=n;
+
+		total_length+=n;
+
+	}
+
+
+	if(n == -1){
+
+		return bytes_left;
+
+	}
+
+	return total_length;
+
+}
+
+
+//protocol: number_of_bytes_of_message|option|res of message -> exapmle 67|5|Hello my name is joan soldevila villalba
+
+void handle_client(int temporary_fd){
+
+	char buffer_receive[1024] = {0};
+
+	char* buffer_send;
+
+	int bytes_received = 0;
+
+	int bytes_sent = 0;
+
+	int result = 0;
+
+	memset(buffer_receive,0,sizeof(buffer_receive));
+
+
+	bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
+
+	if(bytes_received>0){
+
+		buffer_receive[bytes_received] = '\0';
+
+	}else{
+
+		printf("Error, we recevied zero bytes");
+
+	}
 
 	printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
 
 	result = buffer_receive[0] - '0';
 
 	switch(result){
-//when the server receives the result, depending on what the client has sent, we are going to call a function, that will load up the char* that we will send to the client
+
 		case 1:
-			//in this option the user wants to know how many people are playing the game.
-			//first we need to define what is an active player: an active player is someone who is either in a game or someone who is waiting for another player to enter his or her game.
 
 			break;
 
@@ -56,7 +172,8 @@ void handle_client(int temporary_fd){
 			break;
 
 		case 5:
-			//here is where you create or change your name
+
+			buffer_send = "5|Default response";//the compiler automaticly adds the '\0' null terminator, plus we memset this char literal, menaing the rest of the bytes that do not contain an actual message will be filled with '\0'
 			break;
 
 		case 6:
@@ -67,42 +184,39 @@ void handle_client(int temporary_fd){
 			//we are asking the server to close the tcp connection that we have established
 			break;
 
-//based on all of the explanations, we need a integer that conatins the amount of active players
-//we also need a buffer that contains all of the active players names
-//
-
 		default:
 			//in this case, when the server sends something wrong, what happens?
 			break;
 
 		}
-	send(temporary_fd,buffer_send, strlen(buffer_send),0);
+	bytes_sent = send_all(temporary_fd , buffer_send, sizeof(buffer_send));
+	printf("bytes thave been sent: %d\n", bytes_sent);
 
 	close(temporary_fd);
 
 }
 
-int main(int argc, char const* argv[])
+int main()
 {
 
 	int server_file_descriptor = 0;
 
 	int new_socket = 0;
 
-	ssize_t valread;
+//	ssize_t valread;
 
 	struct sockaddr_in address;
 
 	int opt = 1;
 
-	int port_number =8080;
+	int port_number = 8080;
 
 
 	socklen_t addrlen = sizeof(address);
 
-	char buffer_receive[1024];
+//	char buffer_receive[1024];
 
-	char buffer_send[1024] = "HELLO FROM SERVER";
+//	char buffer_send[1024] = "HELLO FROM SERVER";
 
 
 	server_file_descriptor = socket(AF_INET, SOCK_STREAM,0);
@@ -160,18 +274,23 @@ int main(int argc, char const* argv[])
 			exit(EXIT_FAILURE);
 
 		}
+
+
+
 		//this will be fixed in the future
 
-		int bytes_received = 0;
+		handle_client(new_socket);
+
+//		int bytes_received = 0;
 
 
-		read(new_socket, buffer_receive, 1023);
+//		read(new_socket, buffer_receive, 1023);
 
-		printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",new_socket, buffer_receive);
+//		printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",new_socket, buffer_receive);
 
-		send(new_socket,buffer_send, strlen(buffer_send),0);
+//		send(new_socket,buffer_send, strlen(buffer_send),0);
 
-		close(new_socket);
+//		close(new_socket);
 
 
 		}
