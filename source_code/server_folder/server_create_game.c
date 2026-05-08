@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 64
 
 void printCharChain(char* buffer){
 
@@ -189,7 +189,7 @@ void handle_client(int temporary_fd){
 			break;
 
 		}
-	bytes_sent = send_all(temporary_fd , buffer_send, sizeof(buffer_send));
+	bytes_sent = send_all(temporary_fd , buffer_send, BUFFER_SIZE);
 	printf("bytes thave been sent: %d\n", bytes_sent);
 
 	close(temporary_fd);
