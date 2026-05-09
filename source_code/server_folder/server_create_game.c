@@ -23,7 +23,7 @@ int second_player;
 char name[62];
 }game_struct_players;
 
-void create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
+char* create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
 
 	bool quit = false;
 
@@ -135,7 +135,7 @@ int send_all(int temporary_fd, const char*  buffer, int length){
 }
 
 
-void handle_client(int temporary_fd, game_struct_players* game_list, int_length_list){
+void handle_client(int temporary_fd, game_struct_players* game_list){
 
 	char buffer_receive[BUFFER_SIZE];
 
@@ -149,14 +149,14 @@ void handle_client(int temporary_fd, game_struct_players* game_list, int_length_
 
 	int counter = 0;
 
-	memset(buffer_receive,0,sizeof(buffer_receive));
-
-	memset(buffer_send,0,sizeof(buffer_send));
-
 	bool quit = false;
 
 
 	while(!quit){
+
+		memset(buffer_receive,0,sizeof(buffer_receive));
+
+		memset(buffer_send,0,sizeof(buffer_send));
 
 
 		bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
@@ -192,6 +192,8 @@ void handle_client(int temporary_fd, game_struct_players* game_list, int_length_
 			case 6:
 
 				temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter, game_struct_players* game_list);
+
+				break;
 
 			case 7:
 
@@ -236,7 +238,7 @@ void handle_client(int temporary_fd, game_struct_players* game_list, int_length_
 
 void initilizeGames(game_struct_players* game_list){
 
-	for(int i =0;i<MAX_SIZE_GAME;i++){
+	for(int i =0;i<MAX_GAMES_SIZE;i++){
 
 		(game_list+i)->first_player = -1;
 
