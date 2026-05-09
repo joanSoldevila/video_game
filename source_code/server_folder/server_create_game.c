@@ -21,12 +21,13 @@ int first_player;
 int second_player;
 
 char name[62];
+
+int game_id;
 }game_struct_players;
 
 char* create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
 
 	int i =0;
-		//if the first player is already equal to -1, that already means that this game is not occupied, because player one is always allocaed to the person who created the video_game
 
 	while(i<MAX_GAMES_SIZE){
 
@@ -127,6 +128,8 @@ int send_all(int temporary_fd, const char*  buffer, int length){
 
 
 void handle_client(int temporary_fd, game_struct_players* game_list){
+
+	int client_game_id = -1;
 
 	char buffer_receive[BUFFER_SIZE];
 
@@ -246,6 +249,8 @@ void initilizeGames(game_struct_players* game_list){
 
 		memset((game_list+i)->name,0,sizeof((game_list+i)->name));
 
+		(game_list+i)->game_id = -1;
+
 	}
 
 }
@@ -326,23 +331,7 @@ int main()
 
 		}
 
-
-
-		//this will be fixed in the future
-
 		handle_client(new_socket, game_list);
-
-//		int bytes_received = 0;
-
-
-//		read(new_socket, buffer_receive, 1023);
-
-//		printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",new_socket, buffer_receive);
-
-//		send(new_socket,buffer_send, strlen(buffer_send),0);
-
-//		close(new_socket);
-
 
 		}
 
