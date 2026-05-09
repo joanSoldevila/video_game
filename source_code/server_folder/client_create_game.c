@@ -20,16 +20,6 @@ void setupConnection(int* client_file_descriptor,struct sockaddr_in* server_addr
 
 }
 
-void printString(char* buffer){
-
-	for(int i =0;(i<buffer[i]!='\0');i++){
-
-		printf("%c", buffer[i]);
-
-	}
-
-}
-
 int send_all(int temporary_fd, const char*  buffer, int length){
 
         int total_length  = 0;
@@ -105,6 +95,8 @@ int read_all(int temporary_fd, char buffer[], int length){
 	return total_length;
 
 }
+
+
 int send_data_to_server(char* buffer_r,char* buffer_s , int client_file_descriptor){
 
 	int bytes_sent = 0;
@@ -117,13 +109,9 @@ int send_data_to_server(char* buffer_r,char* buffer_s , int client_file_descript
 
 	bytes_sent = send_all(client_file_descriptor, buffer_s,BUFFER_SIZE);
 
-//	printf("number of bytes sent to the server %d\n", bytes_sent);
-
 
 	bytes_read =  read_all(client_file_descriptor,buffer_r, BUFFER_SIZE-1);
 
-
-//	printf("number of bytes recevied from the server: %d\n", bytes_read);
 
 	return bytes_read;
 
@@ -154,63 +142,74 @@ void printMenuSC(){
 
 void handleoption(int option, int file_descriptor){
 
-	char buffer_send[BUFFER_SIZE]="5|hello this is the client";
+	char buffer_send[BUFFER_SIZE] = {0};
 
 
 	char buffer_receive[BUFFER_SIZE] = {0};
+
+
+		//we are going to set everything to zero using memset.
+
+
+	memset(buffer_send, 0, sizeof(buffer_send));
+
+	memset(buffer_receive,0,sizeof(buffer_send));
 
 	int temporary_option = 0 ;
 
 	int counter = 0;
 
-	buffer_send[0] = option + '0';
+	buffer_send[counter++] = option + '0';
 
-	int bytes_receive = send_data_to_server(buffer_receive, buffer_send , file_descriptor);
-
-//	printf("Number of bytes received from server: %d\n", bytes_receive);
+	buffer_send[counter++] = '|';
 
 	switch(option){
 
-		case 1:
-
-			break;
-
-		case 2:
-			break;
-
-		case 3:
-
-			break;
-
-		case 4:
-
-			break;
 
 		case 5:
 
-			temporary_option = buffer_receive[counter++];
+			char* buffer_joan = "This is the message that we want to send";
 
-		//	printf("What the server sent us:\n");
-/*
-			for(int i = 0 ;buffer_receive[i]!='\0';i++){
 
-				printf("%c",buffer_receive[i]);
 
+			for(int i = 0;buffer_joan[i]!='\0';i++){
+
+				buffer_send[counter++]=buffer_joan[i];
 			}
-			printf("\n");
-*/
+			//we have now prepared the message that we want to send.
 
 			break;
-		case 6:
-			 break;
-		case 7:
 
-			break;
+
 		default:
+			printf("Error, no message will be relayed to the sever, invalid option enterd\n");
 
 			break;
-
 		}
+
+
+	printf("sizse of message we are sending: %zu\n", sizeof(buffer_send));
+
+	for(int i =0;i<buffer_send[i]!='\0';i++){
+
+		printf("%c", buffer_send[i]);
+
+	}
+
+	printf("\n");
+	int bytes_receive = send_data_to_server(buffer_receive, buffer_send , file_descriptor);
+
+	printf("Message received from the server\n");
+
+	printf("Size of the actual receiver buffer: %d\n", bytes_receive);//we are probably only receiving 63 bytes, because we are probably ignoring the last byte that the server has sent to use
+
+	for(int i =0;buffer_receive[i]!='\0';i++){
+
+		printf("%c", buffer_receive[i]);
+
+	}
+
+
 }
 
 

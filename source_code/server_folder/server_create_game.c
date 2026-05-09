@@ -11,19 +11,6 @@
 
 #define BUFFER_SIZE 64
 
-void printCharChain(char* buffer){
-
-	for(int i =0;buffer[i]!='\0';i++){
-
-		printf("%c", buffer[i]);
-
-	}
-
-	printf("\n");
-
-}
-
-
 
 int read_all(int temporary_fd, char buffer[], int length){
 
@@ -33,9 +20,6 @@ int read_all(int temporary_fd, char buffer[], int length){
 
 	int n = 0;
 
-	//what we will do is wait untill al bytes have arrived, after that we will then interpret the message, this is easier.
-
-	//the maximum length for any message is 1024 bytes, this is inclduing the null opterator '\0'
 
 	while(total_length<length){
 
@@ -43,7 +27,6 @@ int read_all(int temporary_fd, char buffer[], int length){
 
 		if(n == -1){
 
-			//if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
 
 			printf("Error,the tcp connection was lost\n");
 
@@ -124,9 +107,9 @@ int send_all(int temporary_fd, const char*  buffer, int length){
 
 void handle_client(int temporary_fd){
 
-	char buffer_receive[1024] = {0};
+	char buffer_receive[BUFFER_SIZE];
 
-	char* buffer_send;
+	char buffer_send [BUFFER_SIZE];
 
 	int bytes_received = 0;
 
@@ -134,9 +117,11 @@ void handle_client(int temporary_fd){
 
 	int result = 0;
 
+	int counter = 0;
+
 	memset(buffer_receive,0,sizeof(buffer_receive));
 
-
+	memset(buffer_send,0,sizeof(buffer_send));
 	bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
 
 	if(bytes_received>0){
@@ -151,45 +136,46 @@ void handle_client(int temporary_fd){
 
 	printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
 
-	result = buffer_receive[0] - '0';
+	result = buffer_receive[0] - '0'; //here we are accessing the first element of the char string that we have received via the tcp socket
+	//we can already prepare what we are going to add to the send message to the client:
+
+	buffer_send[counter++] = result + '0';
+
+	buffer_send[counter++] = '|';
+
+	char* temporary_char_pointer;
 
 	switch(result){
 
-		case 1:
-
-			break;
-
-		case 2:
-			//here we ask for how many active players but also the players names(all active players names)
-			break;
-
-		case 3:
-			//here we try to message someone in specific
-			break;
-
-		case 4:
-			//here we are looking into our "bustia" if someone gave us a message or not.
-			break;
-
 		case 5:
-
-			buffer_send = "5|Default response";//the compiler automaticly adds the '\0' null terminator, plus we memset this char literal, menaing the rest of the bytes that do not contain an actual message will be filled with '\0'
-			break;
-
-		case 6:
-			//here is where we create a game
-			break;
-
-		case 7:
-			//we are asking the server to close the tcp connection that we have established
+			temporary_char_pointer = "This is the server, we have receid your message";
 			break;
 
 		default:
-			//in this case, when the server sends something wrong, what happens?
+
+			temporary_char_pointer ="Error, invalid option was sent over";
 			break;
 
 		}
+
+	for(int i =0;temporary_char_pointer[i]!='\0';i++){
+
+		buffer_send[counter++] = temporary_char_pointer[i];
+
+	}
+
+	printf("the server is sending the following message\n");
+
+	for(int i =0;buffer_send[i]!='\0';i++){
+
+
+		printf("%c", buffer_send[i]);
+
+	}
+
+	printf("\n");
 	bytes_sent = send_all(temporary_fd , buffer_send, BUFFER_SIZE);
+
 	printf("bytes thave been sent: %d\n", bytes_sent);
 
 	close(temporary_fd);
@@ -202,8 +188,6 @@ int main()
 	int server_file_descriptor = 0;
 
 	int new_socket = 0;
-
-//	ssize_t valread;
 
 	struct sockaddr_in address;
 
