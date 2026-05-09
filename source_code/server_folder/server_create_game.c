@@ -14,21 +14,16 @@
 #define MAX_GAMES_SIZE 2
 
 
-// we need to define/implement how to figure out what game it is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
-
-//today we need to be able to do the following: someone has to be able to create a game, someone else has to be able to ask if there are any games that are avaliable
-//we might need to use threads instead of normal functions for this to work.
 typedef struct{
 
 int first_player;
 
 int second_player;
 
-char name[62]; //max number is 62 bytes which is how many bytes we have after the first number and the separator -> 6|message to server, rememebr that the first number is the option that the client has selected.
+char name[62];
 }game_struct_players;
 
-
-char* create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
+void create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
 
 	bool quit = false;
 
@@ -49,19 +44,14 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 
 	if(quit){
 
-		//if quit is equal to true, that means that we are able to create a new game
-
 		(game_list+i)->first_player = temporary_fd;
 
-//we actually already now that this function is called when the user chose option 6
-
-		return "6|1|game is being created";
+		return "1|game is being created";
 	}
 
 
-	return "6|0|max capacity of games arrived";
+	return "0|max capacity of games arrived";
 
-//we are adding a space, because in each message that we return, we need to include in the beginning, what option the user first chose, just for the sake of the protocol
 }
 
 
@@ -100,22 +90,13 @@ int read_all(int temporary_fd, char buffer[], int length){
 
 	}
 
-		//even though we have memset that sets eveyrhting to '\0', we will just do it for practice:
 
 	buffer[total_length] = '\0';
-
-
-	//so total length conts '\0'null operator
 
 	return total_length;
 
 }
 
-/*
-Errors: tcp is reliable, but reliable does not mean that the entire message will fit into a single packet.
-The operating system has a limited buffer which actually contains what the socket will actualy send, meaning we send the message to the OS kernel, the kernel only saves part of the message if there is not enought space in the temporary buffer, meaning the rest of the message is lost, it does not get sent.
-TCP is reliable but only for this OS kernel temporary buffer.
-*/
 
 int send_all(int temporary_fd, const char*  buffer, int length){
 
@@ -126,14 +107,12 @@ int send_all(int temporary_fd, const char*  buffer, int length){
 	int n = 0;
 
 
-	//we finish until the total amount of bytes
 	while(total_length<length){
 
 		n = send(temporary_fd,buffer+total_length,bytes_left,0);
 
 		if(n == -1){
 
-		//if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
 			break;
 
 		}
@@ -174,73 +153,100 @@ void handle_client(int temporary_fd, game_struct_players* game_list, int_length_
 
 	memset(buffer_send,0,sizeof(buffer_send));
 
-	bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
-
-	if(bytes_received>0){
-
-		buffer_receive[bytes_received] = '\0';
-
-	}else{
-
-		printf("Error, we recevied zero bytes");
-
-	}
-
-	printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
-
-	result = buffer_receive[0] - '0'; //here we are accessing the first element of the char string that we have received via the tcp socket
-	//we can already prepare what we are going to add to the send message to the client:
-
-	buffer_send[counter++] = result + '0';
-
-	buffer_send[counter++] = '|';
-
-	char* temporary_char_pointer;
-
-	switch(result){
-
-		case 5:
-			temporary_char_pointer = "This is the server, we have received your message";
+	bool quit = false;
 
 
-			break;
-
-		case 6:
-
-			temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter, game_struct_players* game_list);
+	while(!quit){
 
 
-		default:
+		bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
 
-			temporary_char_pointer ="Error, invalid option was sent over";
-			break;
+		if(bytes_received>0){
+
+			buffer_receive[bytes_received] = '\0';
+
+		}else{
+
+			printf("Error, we recevied zero bytes");
 
 		}
 
-	for(int i =0;temporary_char_pointer[i]!='\0';i++){
+		printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
 
-		buffer_send[counter++] = temporary_char_pointer[i];
+		result = buffer_receive[0] - '0';
+
+		buffer_send[counter++] = result + '0';
+
+		buffer_send[counter++] = '|';
+
+		char* temporary_char_pointer;
+
+		switch(result){
+
+			case 5:
+
+				temporary_char_pointer = "This is the server, we have received your message";
+
+				break;
+
+			case 6:
+
+				temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter, game_struct_players* game_list);
+
+			case 7:
+
+				temporary_char_pointer = "This is the server speaking, goodbye";
+
+				quit = true;
+
+			default:
+
+				temporary_char_pointer ="Error, invalid option was sent over";
+
+				break;
+
+		}
+
+		for(int i =0;temporary_char_pointer[i]!='\0';i++){
+
+			buffer_send[counter++] = temporary_char_pointer[i];
+
+		}
+
+		printf("the server is sending the following message\n");
+
+		for(int i =0;buffer_send[i]!='\0';i++){
+
+			printf("%c", buffer_send[i]);
+
+		}
+
+		printf("\n");
+
+		bytes_sent = send_all(temporary_fd , buffer_send, BUFFER_SIZE);
+
+		printf("bytes thave been sent: %d\n", bytes_sent);
 
 	}
-
-	printf("the server is sending the following message\n");
-
-	for(int i =0;buffer_send[i]!='\0';i++){
-
-
-		printf("%c", buffer_send[i]);
-
-	}
-
-	printf("\n");
-	bytes_sent = send_all(temporary_fd , buffer_send, BUFFER_SIZE);
-
-	printf("bytes thave been sent: %d\n", bytes_sent);
 
 	close(temporary_fd);
 
 }
 
+
+void initilizeGames(game_struct_players* game_list){
+
+	for(int i =0;i<MAX_SIZE_GAME;i++){
+
+		(game_list+i)->first_player = -1;
+
+		(game_list+i)->second_player = -1;
+
+		memset((game_list+i)->name,0,sizeof((game_list+i)->name));
+
+	}
+
+}
 int main()
 {
 
@@ -256,11 +262,6 @@ int main()
 
 
 	socklen_t addrlen = sizeof(address);
-
-//	char buffer_receive[1024];
-
-//	char buffer_send[1024] = "HELLO FROM SERVER";
-
 
 	server_file_descriptor = socket(AF_INET, SOCK_STREAM,0);
 
