@@ -281,6 +281,10 @@ void handleServerCommunication(int server_port){
 
 			//in this case we are going to be waiting until the server sends us somehting, so we are going to remain idle until
 
+			//this is the part that requires memory: after users enters the value 6, the process of creating a game begins: we send the tcp package to the server, the serever then creates the game, and if  max capacity has not been reached,the game will be created.
+			//after this, temporary_option is set to 1, we need to wait until the server responds to use with a message indicating that someone has enterd the our lobby and the game can begin.
+			//we need to continue to think about how the protocol is going to work, the architecutre aswell as implement the code for this to happen
+
 			temporary_option = handleoption(); //we are going to have to add a case,where w wait the server to give us a player for our game
 
 		}else if(temporary_option = 2){
