@@ -34,6 +34,7 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 		if((game_list+i)->game_id==-1){
 
 			(game_list+i)->game_id = i;
+			(game_list+i)->first_player = temporary_fd;
 			return "1|game is being created";
 
 		}else{
@@ -149,6 +150,8 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 	while(!quit){
 
+		counter = 0;
+
 		memset(buffer_receive,0,sizeof(buffer_receive));
 
 		memset(buffer_send,0,sizeof(buffer_send));
@@ -162,7 +165,9 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 		}else{
 
-			printf("Error, we recevied zero bytes");
+			printf("Error, we recevied zero bytes\n Client probably disconnected, breaking\n");
+
+			break;
 
 		}
 
