@@ -11,6 +11,59 @@
 
 #define BUFFER_SIZE 64
 
+#define MAX_GAMES_SIZE 2
+
+
+// we need to define/implement how to figure out what game it is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
+
+//today we need to be able to do the following: someone has to be able to create a game, someone else has to be able to ask if there are any games that are avaliable
+//we might need to use threads instead of normal functions for this to work.
+typedef struct{
+
+int first_player;
+
+int second_player;
+
+char name[62]; //max number is 62 bytes which is how many bytes we have after the first number and the separator -> 6|message to server, rememebr that the first number is the option that the client has selected.
+}game_struct_players;
+
+
+char* create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
+
+	bool quit = false;
+
+	int i=0;
+
+	while(!quit && i<MAX_GAMES_SIZE){
+
+		if((game_list+i)->first_player!=-1 && (game_list+i)->second_player!=-1){
+
+			quit = true;
+
+		}else{
+
+			i++;
+		}
+
+	}
+
+	if(quit){
+
+		//if quit is equal to true, that means that we are able to create a new game
+
+		(game_list+i)->first_player = temporary_fd;
+
+//we actually already now that this function is called when the user chose option 6
+
+		return "6|1|game is being created";
+	}
+
+
+	return "6|0|max capacity of games arrived";
+
+//we are adding a space, because in each message that we return, we need to include in the beginning, what option the user first chose, just for the sake of the protocol
+}
+
 
 int read_all(int temporary_fd, char buffer[], int length){
 
@@ -103,9 +156,7 @@ int send_all(int temporary_fd, const char*  buffer, int length){
 }
 
 
-//protocol: number_of_bytes_of_message|option|res of message -> exapmle 67|5|Hello my name is joan soldevila villalba
-
-void handle_client(int temporary_fd){
+void handle_client(int temporary_fd, game_struct_players* game_list, int_length_list){
 
 	char buffer_receive[BUFFER_SIZE];
 
@@ -122,6 +173,7 @@ void handle_client(int temporary_fd){
 	memset(buffer_receive,0,sizeof(buffer_receive));
 
 	memset(buffer_send,0,sizeof(buffer_send));
+
 	bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
 
 	if(bytes_received>0){
@@ -148,8 +200,15 @@ void handle_client(int temporary_fd){
 	switch(result){
 
 		case 5:
-			temporary_char_pointer = "This is the server, we have receid your message";
+			temporary_char_pointer = "This is the server, we have received your message";
+
+
 			break;
+
+		case 6:
+
+			temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter, game_struct_players* game_list);
+
 
 		default:
 

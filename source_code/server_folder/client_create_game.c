@@ -123,13 +123,13 @@ void printMenuSC(){
 
 	printf("Menu for Server communication\n");
 
-	printf("1. Ask server for number of active players");
+	printf("1. Ask server for number of active players\n");
 
-	printf("2. Ask server for all players names");
+	printf("2. Ask server for all players names\n");
 
-	printf("3. Message someone specificly");
+	printf("3. Message someone specificly\n");
 
-	printf("4. Ask server for your incoming messages");
+	printf("4. Ask server for your incoming messages\n");
 
 	printf("5. Create/change your name or send message to server\n");
 
@@ -144,16 +144,13 @@ void handleoption(int option, int file_descriptor){
 
 	char buffer_send[BUFFER_SIZE] = {0};
 
-
 	char buffer_receive[BUFFER_SIZE] = {0};
-
-
-		//we are going to set everything to zero using memset.
-
 
 	memset(buffer_send, 0, sizeof(buffer_send));
 
 	memset(buffer_receive,0,sizeof(buffer_send));
+
+	char* temporary_buffer;
 
 	int temporary_option = 0 ;
 
@@ -165,18 +162,33 @@ void handleoption(int option, int file_descriptor){
 
 	switch(option){
 
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 7:
+			//here we do not really need to add anythin else, we just need to send the number that is it
+
+			break;
+
 
 		case 5:
 
-			char* buffer_joan = "This is the message that we want to send";
+			temporary_buffer= "This is the message that we want to send";
 
+			for(int i = 0;temporary_buffer[i]!='\0';i++){
 
-
-			for(int i = 0;buffer_joan[i]!='\0';i++){
-
-				buffer_send[counter++]=buffer_joan[i];
+				buffer_send[counter++]=temporary_buffer[i];
 			}
-			//we have now prepared the message that we want to send.
+
+			break;
+
+
+		case 6:
+
+			//we can ask the user first for a name of the game that they want. For now no authentification is needed to be able to use the video game or simply just enter a game, you just see it in the menu, and then....
+			printf("Enter a name for the game, do not make the name very long (max 62 bytes)\n");
+			scanf("%s", temporary_buffer);
 
 			break;
 
@@ -188,26 +200,17 @@ void handleoption(int option, int file_descriptor){
 		}
 
 
-	printf("sizse of message we are sending: %zu\n", sizeof(buffer_send));
-
-	for(int i =0;i<buffer_send[i]!='\0';i++){
-
-		printf("%c", buffer_send[i]);
-
-	}
-
-	printf("\n");
 	int bytes_receive = send_data_to_server(buffer_receive, buffer_send , file_descriptor);
 
-	printf("Message received from the server\n");
-
-	printf("Size of the actual receiver buffer: %d\n", bytes_receive);//we are probably only receiving 63 bytes, because we are probably ignoring the last byte that the server has sent to use
+	printf("Server respondse:  ");
 
 	for(int i =0;buffer_receive[i]!='\0';i++){
 
 		printf("%c", buffer_receive[i]);
 
 	}
+
+	printf("\n\n");
 
 
 }
@@ -235,7 +238,7 @@ void handleServerCommunication(int server_port){
 
 	setupConnection(&client_file_descriptor, &server_address, server_port);
 
-	//printMenuSC();
+	printMenuSC();
 
 	while(!quit){
 
