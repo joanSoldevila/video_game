@@ -139,12 +139,8 @@ void printMenuSC(){
 
 }
 
+int handleoption(int option, int file_descriptor){
 
-void handleoption(int option, int file_descriptor){
-
-	//no m'agrada el que estem, fent, el loop no esta dins d'aquesta funcio, la cpu ha d'alocar sempre que es crida aquseta funcio,a apart dels paramtres totes les va3riables que utiltizem,que pot ser costos.
-	//per ara ho deixerem, pero aixo es valor computacional gastat, no cal repetir-ho, mentres que buffer_send , buffer_receive sempre es fa un reset abans de ser utitlizats un altre cop, no tindremproblemes.
-	//pero un altre cop no ho canviarem per ara.
 	char buffer_send[BUFFER_SIZE] = {0};
 
 	char buffer_receive[BUFFER_SIZE] = {0};
@@ -155,13 +151,12 @@ void handleoption(int option, int file_descriptor){
 
 	char* temporary_buffer;
 
-	int temporary_option = 0 ;
-
-	int counter = 0;
+	int temporary_option = 0, counter = 0, return_state = 0;
 
 	buffer_send[counter++] = option + '0';
 
 	buffer_send[counter++] = '|';
+
 
 	switch(option){
 
@@ -169,7 +164,9 @@ void handleoption(int option, int file_descriptor){
 		case 2:
 		case 3:
 		case 4:
-		
+
+			//for now we are going to use no memory here
+			return_state = 0;
 			temporary_buffer = "protocol has not been defined yet";
 
 			break;
@@ -179,6 +176,7 @@ void handleoption(int option, int file_descriptor){
 
 			temporary_buffer= "This is the message that we want to send";
 
+			return_state = 0;
 			break;
 
 
@@ -187,15 +185,18 @@ void handleoption(int option, int file_descriptor){
 			//we can ask the user first for a name of the game that they want. For now no authentification is needed to be able to use the video game or simply just enter a game, you just see it in the menu, and then....
 			printf("Enter a name for the game, do not make the name very long (max 62 bytes)\n");
 			scanf("%s", temporary_buffer);
-
+			return_state = 1;
 			break;
 
 		case 7:
 
 			//here we are just trying to quit
 
+
+			return_state = 0;
 			temporary_buffer ="this is the client, we are closing";
 
+			//here state does not matter, the connection is being closed
 			break;
 
 
@@ -203,6 +204,10 @@ void handleoption(int option, int file_descriptor){
 			printf("Error, no message will be relayed to the sever, invalid option enterd\n");
 
 			temporary_buffer ="message is not valid";
+
+			//FOR INVALIED MESSAGEA, it can remain statless
+
+			return_state = 0;
 
 			break;
 		}
@@ -226,7 +231,7 @@ void handleoption(int option, int file_descriptor){
 
 	printf("\n\n");
 
-
+	return return_state;
 }
 
 
@@ -239,15 +244,9 @@ void handleServerCommunication(int server_port){
 
 	struct sockaddr_in server_address={0};
 
-	int bytes_receive = 0;
-
-	int bytes_send = 0 ;
+	int bytes_receive = 0, bytes_send = 0, option = 0, client_file_descriptor = 0, temporary_option = 0;
 
         bool quit = false;
-
-        int option = 0;
-
-	int client_file_descriptor = 0;
 
 
 	setupConnection(&client_file_descriptor, &server_address, server_port);
@@ -256,28 +255,39 @@ void handleServerCommunication(int server_port){
 
 	while(!quit){
 
-	//	printf("Enter option: \n");
+
+		if(temporary_option == 0){
 
 		do{
-
-	//		scanf("%d", &option);
 
 			printf("please enter your option:\n");
 
 			scanf("%d", &option);
 			if(option<1 || option>7){
-
-			//	printf("Error, invalid option, please enter a number between one and 7 (both included)\n");
-
+				printf("input option invalid\n");
 			}
 
 		}while(option<1 || option>7);
 
-		handleoption(option, client_file_descriptor);
+		temporary_option = handleoption(option, client_file_descriptor);
 
 		if(option==7){
 
 			quit = true;
+
+		}
+
+		}else if(temporary_option == 1){//we need memory
+
+			//in this case we are going to be waiting until the server sends us somehting, so we are going to remain idle until
+
+			temporary_option = handleoption(); //we are going to have to add a case,where w wait the server to give us a player for our game
+
+		}else if(temporary_option = 2){
+
+
+
+
 
 		}
 
