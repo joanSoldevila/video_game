@@ -1,13 +1,10 @@
 //this file is going to contain the server code
 #include <netinet/in.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <stdbool.h>
-
+#include "server_send_data.h"
 
 #define BUFFER_SIZE 64
 
@@ -45,86 +42,6 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 	}
 
 	return "0|max capacity of games arrived";
-
-}
-
-
-int read_all(int temporary_fd, char buffer[], int length){
-
-	int total_length  = 0;
-
-	int bytes_left = length;
-
-	int n = 0;
-
-
-	while(total_length<length){
-
-		n = read(temporary_fd,buffer+total_length,bytes_left);
-
-		if(n == -1){
-
-
-			printf("Error,the tcp connection was lost\n");
-
-			break;
-
-		}
-
-		bytes_left-=n;
-
-		total_length+=n;
-
-	}
-
-
-	if(n == -1){
-
-		return bytes_left;
-
-	}
-
-
-	buffer[total_length] = '\0';
-
-	return total_length;
-
-}
-
-
-int send_all(int temporary_fd, const char*  buffer, int length){
-
-	int total_length  = 0;
-
-	int bytes_left = length;
-
-	int n = 0;
-
-
-	while(total_length<length){
-
-		n = send(temporary_fd,buffer+total_length,bytes_left,0);
-
-		if(n == -1){
-
-			break;
-
-		}
-
-		bytes_left-=n;
-
-		total_length+=n;
-
-	}
-
-
-	if(n == -1){
-
-		return bytes_left;
-
-	}
-
-	return total_length;
 
 }
 

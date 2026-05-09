@@ -1,5 +1,5 @@
-#include "client_create_game.h"
-
+#include "client_main.h"
+#include "client_send_data.h"
 void setupConnection(int* client_file_descriptor,struct sockaddr_in* server_address, int port){
 
 	*(client_file_descriptor) = socket(AF_INET, SOCK_STREAM,0);
@@ -20,123 +20,10 @@ void setupConnection(int* client_file_descriptor,struct sockaddr_in* server_addr
 
 }
 
-int send_all(int temporary_fd, const char*  buffer, int length){
-
-        int total_length  = 0;
-
-        int bytes_left = length;
-
-        int n = 0;
-
-
-        //we finish until the total amount of bytes
-        while(total_length<length){
-
-                n = send(temporary_fd,buffer+total_length,bytes_left,0);
-
-                if(n == -1){
-
-                //if this happens,this probably means that the connection was lost, the tcp conneection was cutoff.
-                        break;
-
-                }
-
-                bytes_left-=n;
-
-                total_length+=n;
-
-        }
-
-
-        if(n == -1){
-
-                return bytes_left;
-
-        }
-
-        return total_length;
-
-}
-
-int read_all(int temporary_fd, char buffer[], int length){
-//rememebr that for reading it is always going to be one less, beacuse of the null terminator,
-
-	int total_length = 0;
-
-	int bytes_left = length;
-
-	int n = 0;
-
-
-	while(total_length<length){
-
-
-		n = read(temporary_fd, buffer+total_length,bytes_left);
-
-		if(n == -1){
-
-		//	printf("Error, the connection was lost, not bytes where sent\n");
-
-			break;
-		}
-
-
-		total_length+=n;
-
-		bytes_left-=n;
-
-	}
-
-
-	//after reading, we need to set the last thing that we have read to '\0', just in case:
-
-	buffer[total_length] = '\0';
-
-	return total_length;
-
-}
-
-
-int send_data_to_server(char* buffer_r,char* buffer_s , int client_file_descriptor){
-
-	int bytes_sent = 0;
-
-	int bytes_read = 0;
-
-
-	int bytes_sent_client = 0;
-
-
-	bytes_sent = send_all(client_file_descriptor, buffer_s,BUFFER_SIZE);
-
-
-	bytes_read =  read_all(client_file_descriptor,buffer_r, BUFFER_SIZE-1);
-
-
-	return bytes_read;
-
-}
-
-
 
 void printMenuSC(){
 
-	printf("Menu for Server communication\n");
-
-	printf("1. Ask server for number of active players\n");
-
-	printf("2. Ask server for all players names\n");
-
-	printf("3. Message someone specificly\n");
-
-	printf("4. Ask server for your incoming messages\n");
-
-	printf("5. Create/change your name or send message to server\n");
-
-	printf("6. Create a game\n");
-
-	printf("7. Quit server communication\n");
-
+	printf("Menu for Server communication\n1. Ask server for number of active players\n2. Ask server for all players names\n3. Message someone specificly\n4. Ask server for your incoming messages\n5. Create/change your name or send message to server\n6. Create a game\n7. Quit server communication\n");
 }
 
 int handleoption(int option, int file_descriptor){
@@ -285,7 +172,7 @@ void handleServerCommunication(int server_port){
 			//after this, temporary_option is set to 1, we need to wait until the server responds to use with a message indicating that someone has enterd the our lobby and the game can begin.
 			//we need to continue to think about how the protocol is going to work, the architecutre aswell as implement the code for this to happen
 
-			temporary_option = handleoption(); //we are going to have to add a case,where w wait the server to give us a player for our game
+//we are commenting this line because we have not defined the protocol yet	temporary_option = handleoption(); //we are going to have to add a case,where w wait the server to give us a player for our game
 
 		}else if(temporary_option = 2){
 
