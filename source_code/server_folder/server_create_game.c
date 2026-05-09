@@ -31,7 +31,7 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 
 	while(i<MAX_GAMES_SIZE){
 
-		if((game_list+i)->game_id!=-1){//if a game_id is equal to 1, that is bad
+		if((game_list+i)->game_id==-1){
 
 			(game_list+i)->game_id = i;
 			return "1|game is being created";
