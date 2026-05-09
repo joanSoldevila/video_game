@@ -25,15 +25,14 @@ char name[62];
 
 char* create_game(int temporary_fd, char* buffer_receive, int counter, game_struct_players* game_list){
 
-	bool quit = false;
+	int i =0;
+		//if the first player is already equal to -1, that already means that this game is not occupied, because player one is always allocaed to the person who created the video_game
 
-	int i=0;
+	while(i<MAX_GAMES_SIZE){
 
-	while(!quit && i<MAX_GAMES_SIZE){
+		if((game_list+i)->first_player!=-1){
 
-		if((game_list+i)->first_player!=-1 && (game_list+i)->second_player!=-1){
-
-			quit = true;
+			return "1|game is being created";
 
 		}else{
 
@@ -41,14 +40,6 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 		}
 
 	}
-
-	if(quit){
-
-		(game_list+i)->first_player = temporary_fd;
-
-		return "1|game is being created";
-	}
-
 
 	return "0|max capacity of games arrived";
 
