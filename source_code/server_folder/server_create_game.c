@@ -183,6 +183,14 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 		switch(result){
 
+
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+
+				temporary_char_pointer = "The server is responding without protocol";
+				break;
 			case 5:
 
 				temporary_char_pointer = "This is the server, we have received your message";
@@ -191,7 +199,7 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 			case 6:
 
-				temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter, game_struct_players* game_list);
+				temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter,  game_list);
 
 				break;
 
@@ -201,6 +209,7 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 				quit = true;
 
+				break;
 			default:
 
 				temporary_char_pointer ="Error, invalid option was sent over";
@@ -263,9 +272,14 @@ int main()
 	int port_number = 8080;
 
 
+	game_struct_players game_list[MAX_GAMES_SIZE];
+
 	socklen_t addrlen = sizeof(address);
 
 	server_file_descriptor = socket(AF_INET, SOCK_STREAM,0);
+
+
+	initilizeGames(game_list);
 
 	if(server_file_descriptor<0){
 
@@ -325,7 +339,7 @@ int main()
 
 		//this will be fixed in the future
 
-		handle_client(new_socket);
+		handle_client(new_socket, game_list);
 
 //		int bytes_received = 0;
 

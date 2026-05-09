@@ -142,6 +142,9 @@ void printMenuSC(){
 
 void handleoption(int option, int file_descriptor){
 
+	//no m'agrada el que estem, fent, el loop no esta dins d'aquesta funcio, la cpu ha d'alocar sempre que es crida aquseta funcio,a apart dels paramtres totes les va3riables que utiltizem,que pot ser costos.
+	//per ara ho deixerem, pero aixo es valor computacional gastat, no cal repetir-ho, mentres que buffer_send , buffer_receive sempre es fa un reset abans de ser utitlizats un altre cop, no tindremproblemes.
+	//pero un altre cop no ho canviarem per ara.
 	char buffer_send[BUFFER_SIZE] = {0};
 
 	char buffer_receive[BUFFER_SIZE] = {0};
@@ -166,8 +169,8 @@ void handleoption(int option, int file_descriptor){
 		case 2:
 		case 3:
 		case 4:
-		case 7:
-			//here we do not really need to add anythin else, we just need to send the number that is it
+		
+			temporary_buffer = "protocol has not been defined yet";
 
 			break;
 
@@ -175,11 +178,6 @@ void handleoption(int option, int file_descriptor){
 		case 5:
 
 			temporary_buffer= "This is the message that we want to send";
-
-			for(int i = 0;temporary_buffer[i]!='\0';i++){
-
-				buffer_send[counter++]=temporary_buffer[i];
-			}
 
 			break;
 
@@ -192,12 +190,28 @@ void handleoption(int option, int file_descriptor){
 
 			break;
 
+		case 7:
+
+			//here we are just trying to quit
+
+			temporary_buffer ="this is the client, we are closing";
+
+			break;
+
 
 		default:
 			printf("Error, no message will be relayed to the sever, invalid option enterd\n");
 
+			temporary_buffer ="message is not valid";
+
 			break;
 		}
+
+	for(int i = 0;temporary_buffer[i]!='\0';i++){
+
+		buffer_send[counter++]=temporary_buffer[i];
+
+	}
 
 
 	int bytes_receive = send_data_to_server(buffer_receive, buffer_send , file_descriptor);
@@ -248,7 +262,9 @@ void handleServerCommunication(int server_port){
 
 	//		scanf("%d", &option);
 
-			option = 5;
+			printf("please enter your option:\n");
+
+			scanf("%d", &option);
 			if(option<1 || option>7){
 
 			//	printf("Error, invalid option, please enter a number between one and 7 (both included)\n");
