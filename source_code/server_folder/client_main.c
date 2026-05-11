@@ -121,6 +121,31 @@ int handleoption(int option, int file_descriptor){
 	return return_state;
 }
 
+int handleWaitGame(int file_descriptor){
+
+//when we call handleWaitGame, it is because we have created a game, but now we wait for some other person to be able to connect to the game
+//in socket programming the function read sits in idle until it recives bytes, which is way we are calling read_all.
+//sense this function is very simple we are probably just going to put it direcly in the main loop of the client, we will change this in the future.
+int number_of_bytes = read_all(file_descriptor, buffer, length);
+
+//after this depending on how many bytes we have received, we are going to have some type of error, or everyting was done correcty
+
+//we are going to try to return what is the client state.
+//the values that we are returning will have to be revweid
+if(number_of_bytes<=0){
+
+printf("Error, we have received 0 bytes: indicates that connection was lost\n");
+
+
+return 1;
+
+}else{
+
+return 0;
+
+}
+
+}
 
 
 void handleServerCommunication(int server_port){
@@ -166,13 +191,6 @@ void handleServerCommunication(int server_port){
 
 		}else if(temporary_option == 1){//we need memory
 
-			//in this case we are going to be waiting until the server sends us somehting, so we are going to remain idle until
-
-			//this is the part that requires memory: after users enters the value 6, the process of creating a game begins: we send the tcp package to the server, the serever then creates the game, and if  max capacity has not been reached,the game will be created.
-			//after this, temporary_option is set to 1, we need to wait until the server responds to use with a message indicating that someone has enterd the our lobby and the game can begin.
-			//we need to continue to think about how the protocol is going to work, the architecutre aswell as implement the code for this to happen
-
-//we are commenting this line because we have not defined the protocol yet	temporary_option = handleoption(); //we are going to have to add a case,where w wait the server to give us a player for our game
 
 		}else if(temporary_option = 2){
 
