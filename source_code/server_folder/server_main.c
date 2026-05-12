@@ -46,7 +46,7 @@ char* create_game(int temporary_fd, char* buffer_receive, int counter, game_stru
 }
 
 
-void handle_client(int temporary_fd, game_struct_players* game_list){
+int handle_client(int temporary_fd, game_struct_players* game_list){
 
 	int client_game_id = -1;
 
@@ -62,76 +62,72 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 	int counter = 0;
 
-	bool quit = false;
+	int client_status = 2;
 
 
-	while(!quit){
+	counter = 0;
 
-		counter = 0;
+	memset(buffer_receive,0,sizeof(buffer_receive));
 
-		memset(buffer_receive,0,sizeof(buffer_receive));
-
-		memset(buffer_send,0,sizeof(buffer_send));
+	memset(buffer_send,0,sizeof(buffer_send));
 
 
-		bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
+	bytes_received = read_all(temporary_fd, buffer_receive, BUFFER_SIZE-1);
 
-		if(bytes_received>0){
+	if(bytes_received>0){
 
-			buffer_receive[bytes_received] = '\0';
+		buffer_receive[bytes_received] = '\0';
 
-		}else{
+	}else{
 
-			printf("Error, we recevied zero bytes\n Client probably disconnected, breaking\n");
+		printf("Error, we recevied zero bytes\n Client probably disconnected, breaking\n");
+
+		break;
+
+	}
+
+	result = buffer_receive[0] - '0';
+
+	buffer_send[counter++] = result + '0';
+
+	buffer_send[counter++] = '|';
+
+	char* temporary_char_pointer;
+
+	switch(result){
+
+
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			client_status = 2;
+			temporary_char_pointer = "The server is responding without protocol";
+			break;
+		case 5:
+			client_status = 2;
+			temporary_char_pointer = "This is the server, we have received your message";
 
 			break;
 
-		}
+		case 6:
+			client_status = 0;
+			temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter,  game_list);
 
-		printf("CLIENT NUMBER %d HAS SENT THE FOLLOWING MESSAGE: %s\n\n",temporary_fd, buffer_receive);
+			break;
 
-		result = buffer_receive[0] - '0';
+		case 7:
+			client_status = 2;
+			temporary_char_pointer = "This is the server speaking, goodbye";
 
-		buffer_send[counter++] = result + '0';
+			quit = true;
 
-		buffer_send[counter++] = '|';
+			break;
+		default:
+			client_status = 1;
+			temporary_char_pointer ="Error, invalid option was sent over";
 
-		char* temporary_char_pointer;
-
-		switch(result){
-
-
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-
-				temporary_char_pointer = "The server is responding without protocol";
-				break;
-			case 5:
-
-				temporary_char_pointer = "This is the server, we have received your message";
-
-				break;
-
-			case 6:
-
-				temporary_char_pointer = create_game(temporary_fd,  buffer_receive, counter,  game_list);
-
-				break;
-
-			case 7:
-
-				temporary_char_pointer = "This is the server speaking, goodbye";
-
-				quit = true;
-
-				break;
-			default:
-
-				temporary_char_pointer ="Error, invalid option was sent over";
-
-				break;
+			break;
 
 		}
 
@@ -141,26 +137,11 @@ void handle_client(int temporary_fd, game_struct_players* game_list){
 
 		}
 
-		printf("the server is sending the following message\n");
-
-		for(int i =0;buffer_send[i]!='\0';i++){
-
-			printf("%c", buffer_send[i]);
-
-		}
-
-		printf("\n");
 
 		bytes_sent = send_all(temporary_fd , buffer_send, BUFFER_SIZE);
 
-		printf("bytes thave been sent: %d\n", bytes_sent);
-
-	}
-
-	close(temporary_fd);
-
+		return client_status;
 }
-
 
 void initilizeGames(game_struct_players* game_list){
 
@@ -177,18 +158,18 @@ void initilizeGames(game_struct_players* game_list){
 	}
 
 }
+void lookForPlayers(){
+
+
+}
 int main()
 {
 
-	int server_file_descriptor = 0;
+	int server_file_descriptor = 0, new_socket = 0, opt = 1, port_number = 8080, client_status = 0;
 
-	int new_socket = 0;
 
 	struct sockaddr_in address;
 
-	int opt = 1;
-
-	int port_number = 8080;
 
 
 	game_struct_players game_list[MAX_GAMES_SIZE];
@@ -254,9 +235,43 @@ int main()
 
 		}
 
-		handle_client(new_socket, game_list);
 
-		}
 
+		do{
+
+			client_status = handle_client(new_socket, game_list);
+
+			//after receving the client status, we need to know what todo, 
+			//if the client requested something that does not require memory, we will simple close, so no if statment for this
+			//if it returns 0, that means that the client created a game, and now the server needs to find the game, and then tell the client that the game was found.
+			//we might have to change this in the future due to branch predictions
+			if(client_status == 0){
+
+				//server executes code for game waiting
+
+			}
+
+			if(client_status == 1){
+
+				//we can probably use this when the game starts or something.
+
+			}
+
+			//in any other case, no memory is needed, therefore we are able to leave the loop and close the connnection with the client.
+
+		}while(client_status!=3);//this is a bad magic number,we are going to fix this in the future using typedef enums, this number indicates that we have lost connection or the client as decided to close the connnection with the server.
+
+
+
+
+//when client_status == 0, the server now needs to look for a game, after creating the game, the server needs to send a message to the client.
+//we are going to do the following:
+/*
+we are going to create a loop, in this loop, we repeadly call the handle_client function
+*/
+
+		close(new_socket);
+
+	}
 	close(server_file_descriptor);
 }
