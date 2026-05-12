@@ -126,7 +126,12 @@ int handleWaitGame(int file_descriptor){
 //when we call handleWaitGame, it is because we have created a game, but now we wait for some other person to be able to connect to the game
 //in socket programming the function read sits in idle until it recives bytes, which is way we are calling read_all.
 //sense this function is very simple we are probably just going to put it direcly in the main loop of the client, we will change this in the future.
+
+
+//we want to add some type of max executed in paral·lel, so that when this function is being executed, in paral·lel we have another pthread executino in paral3el, and when it returns, that means that max time has elapsed, and we can just exit, returning a value that indicates that no one wanted or could not enter our game
 int number_of_bytes = read_all(file_descriptor, buffer, length);
+
+
 
 //after this depending on how many bytes we have received, we are going to have some type of error, or everyting was done correcty
 
@@ -137,12 +142,15 @@ if(number_of_bytes<=0){
 printf("Error, we have received 0 bytes: indicates that connection was lost\n");
 
 
-return 1;
+return 0;
+
+}else if(!game_created){
+
+return ;
 
 }else{
 
-return 0;
-
+return;
 }
 
 }
@@ -170,6 +178,8 @@ void handleServerCommunication(int server_port){
 
 		if(temporary_option == 0){
 
+		//temporary_option is equal to zero, no memory is needed
+
 		do{
 
 			printf("please enter your option:\n");
@@ -190,6 +200,11 @@ void handleServerCommunication(int server_port){
 		}
 
 		}else if(temporary_option == 1){//we need memory
+
+		//when temporary_option is equal to 1, we do need memory, in this case we call the function that just
+		//here is where we call the fucntion that waits untiil the server responds us with a message
+		//if the function returns 0, that means that either the connection was lost, time expired (there is going to be some type of max that players have to wait for).
+		//in case that it returns temporary_option is equal to 2, that means that someone has enterd the game
 
 
 		}else if(temporary_option = 2){
